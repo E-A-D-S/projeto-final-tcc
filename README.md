@@ -2,7 +2,7 @@
 
 Sistema web para cadastro e acompanhamento de pacientes de uma clínica escola de Psicologia. O projeto nasceu como Trabalho de Conclusão de Curso na ULBRA em 2022 e, em 2026, passou por uma modernização completa.
 
-> **Sobre esta branch.** O `main` continua com o trabalho original de 2022, preservado exatamente como foi entregue. Esta branch (`modernizacao-ia-2026`) é um novo ponto de ramificação com o projeto totalmente revisado, seguro e, pela primeira vez, publicado online.
+> **Sobre esta branch.** O `main` continua com o trabalho original de 2022, preservado exatamente como foi entregue. Esta branch (`modernizacao-ia-2026`) é um novo ponto de ramificação com o projeto totalmente revisado, seguro e, agora, com hospedagem permanente online.
 
 > **Aplicação no ar:** https://clinica-ulbra.onrender.com
 
@@ -14,14 +14,16 @@ Sistema web para cadastro e acompanhamento de pacientes de uma clínica escola d
 
 Toda a modernização foi feita **sem escrita manual de código**, usando inteligência artificial como par de programação. Não reescrevi o sistema do zero: parti do meu próprio TCC de 2022 e fui melhorando cada parte com apoio de IA, revisando e validando cada mudança.
 
-O foco foi transformar um trabalho acadêmico que só rodava na minha máquina em um sistema real, seguro, acessível e publicado, aplicando as boas práticas atuais de segurança do Brasil e do mundo.
+O foco foi transformar um trabalho acadêmico, que rodava localmente, em um sistema real, seguro, acessível e com hospedagem permanente, aplicando as boas práticas atuais de segurança do Brasil e do mundo.
 
 ---
 
 ## O que mudou em relação ao projeto de 2022
 
-### Hospedagem (antes não existia)
-O TCC original nunca chegou a ficar online. Agora ele roda 24 horas por dia, com custo zero:
+### Hospedagem (agora permanente e gratuita)
+Na época do TCC, o sistema rodava localmente. Para a apresentação, eu o deixava acessível de forma temporária por um túnel (ngrok), compartilhado por QR code, o que permitia à banca testar em tempo real e simular um ambiente hospedado online. Era uma solução de demonstração: funcionava apenas enquanto a minha máquina estava ligada e o túnel aberto.
+
+Agora o sistema tem hospedagem de verdade, no ar 24 horas por dia e com custo zero, pronta inclusive para uso real da clínica caso haja interesse:
 - **Render** (Docker, plano gratuito) executa a aplicação. Ver `Dockerfile`, `docker-entrypoint.sh` e `render.yaml`.
 - **Neon** (PostgreSQL gratuito) guarda os dados, com conexão via TLS.
 - Ajustes feitos para o ambiente de produção: proxy reverso confiável (`TrustProxies`), forçar HTTPS, e sessões guardadas no banco (para o usuário não cair a cada reinício do servidor no plano gratuito).
