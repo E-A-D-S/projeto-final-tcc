@@ -13,7 +13,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Sessoes no banco em producao: sobrevivem a reinicios do container
+        // (no plano free do Render, dormir/deploy apagaria a sessao em arquivo e deslogaria).
+        if ($this->app->environment('production')) {
+            config(['session.driver' => 'database']);
+        }
     }
 
     /**
@@ -23,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Render (e outros proxies) terminam o HTTPS antes do app.
+        // Sem isso o Laravel gera URLs http e o login quebra.
+        if ($this->app->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

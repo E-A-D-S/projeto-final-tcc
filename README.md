@@ -1,66 +1,111 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Clínica ULBRA · Sistema de gestão de pacientes (versão modernizada 2026)
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web para cadastro e acompanhamento de pacientes de uma clínica escola de Psicologia. O projeto nasceu como Trabalho de Conclusão de Curso na ULBRA em 2022 e, em 2026, passou por uma modernização completa.
 
-## About Laravel
+> **Sobre esta branch.** O `main` continua com o trabalho original de 2022, preservado exatamente como foi entregue. Esta branch (`modernizacao-ia-2026`) é um novo ponto de ramificação com o projeto totalmente revisado, seguro e, pela primeira vez, publicado online.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> **Aplicação no ar:** https://clinica-ulbra.onrender.com
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+> Projeto acadêmico. Todos os dados da demonstração são **fictícios**.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Como esta versão foi construída
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Toda a modernização foi feita **sem escrita manual de código**, usando inteligência artificial como par de programação. Não reescrevi o sistema do zero: parti do meu próprio TCC de 2022 e fui melhorando cada parte com apoio de IA, revisando e validando cada mudança.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+O foco foi transformar um trabalho acadêmico que só rodava na minha máquina em um sistema real, seguro, acessível e publicado, aplicando as boas práticas atuais de segurança do Brasil e do mundo.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## O que mudou em relação ao projeto de 2022
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+### Hospedagem (antes não existia)
+O TCC original nunca chegou a ficar online. Agora ele roda 24 horas por dia, com custo zero:
+- **Render** (Docker, plano gratuito) executa a aplicação. Ver `Dockerfile`, `docker-entrypoint.sh` e `render.yaml`.
+- **Neon** (PostgreSQL gratuito) guarda os dados, com conexão via TLS.
+- Ajustes feitos para o ambiente de produção: proxy reverso confiável (`TrustProxies`), forçar HTTPS, e sessões guardadas no banco (para o usuário não cair a cada reinício do servidor no plano gratuito).
 
-### Premium Partners
+### Segurança (auditoria OWASP Top 10 + NIST)
+Fiz uma auditoria de segurança do projeto, do banco e da hospedagem seguindo OWASP Top 10 e as referências do NIST. Correções e proteções aplicadas:
+- Validação server-side em todos os cadastros e edições.
+- Proteção contra mass assignment (lista branca de campos em cada model).
+- Limite de requisições (rate limit) e honeypot anti-spam no formulário público.
+- Cadastro self-service desativado (`/register` fora do ar), evitando criação de contas indevidas.
+- Controle de acesso por permissão nas rotas administrativas (visitante recebe 403 no painel e nos PDFs).
+- Credenciais fora do código: tudo por variáveis de ambiente. O `.env` real com segredos foi removido do histórico exposto e trocado por exemplo.
+- HTTPS forçado e sessões persistidas em banco.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+### Proteção de dados e conformidade legal
+- **LGPD:** aviso de consentimento no cadastro, explicando o uso dos dados e o direito de solicitar remoção. O envio só é aceito com o aceite marcado.
+- **Retenção de prontuário (Resolução CFP 001/2009):** dados de paciente **nunca são apagados de verdade**. A ação de excluir virou **Arquivar** (soft delete): o registro sai da lista ativa, mas o histórico fica guardado e pode ser restaurado. Existe uma tela dedicada de arquivados.
 
-## Contributing
+### Novas funcionalidades
+- **E-mail real funcionando:** ao cadastrar, o paciente recebe uma confirmação por e-mail e a clínica recebe um aviso do novo cadastro (SMTP da própria conta da clínica).
+- **Histórico de atendimentos:** registro de cada sessão (data, hora, profissional e anotações), com impressão do histórico completo em PDF.
+- **Login com Google** (OAuth), além do login por e-mail e senha, para acesso mais fácil da equipe.
+- **Ficha e contrato do paciente em PDF**, reescritos para sair limpos e com a identidade visual correta.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Experiência e acessibilidade
+- **Interface redesenhada** do zero com um design system próprio (cores harmônicas, componentes consistentes).
+- **Modo claro e modo escuro**, com a preferência salva.
+- **Totalmente responsivo** (celular, tablet e computador).
+- **Tudo em português**, com textos revisados (UX writing).
+- **Acessibilidade:** navegação por teclado com foco visível, informação que não depende só de cor (apoio a daltônicos) e **VLibras** (tradução em Libras, ferramenta gratuita do governo) em todas as telas.
+- CSS e JS servidos localmente, sem depender de CDNs externas.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Acesso de demonstração
 
-## Security Vulnerabilities
+As credenciais aparecem na própria tela de login. O ambiente publicado roda em **modo demonstração**: o cadastro público de paciente funciona de verdade (inclusive o disparo de e-mail), mas as ações de escrita do admin ficam bloqueadas para preservar os dados de exemplo.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## Tecnologias
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- PHP 8 e **Laravel 9**
+- Jetstream, Fortify e Sanctum (autenticação)
+- Laravel Socialite (login com Google)
+- Livewire (componentes)
+- spatie/laravel-permission (permissões)
+- barryvdh/laravel-dompdf (PDF)
+- Blade e design system próprio em CSS (com Tailwind e Vite disponíveis)
+- Banco: SQLite (local) ou PostgreSQL (produção, no Neon)
+- Deploy: Docker no Render
+
+---
+
+## Rodando localmente
+
+Pré-requisitos: PHP 8, Composer e Node.
+
+```bash
+composer install
+npm install
+
+cp .env.example .env
+touch database/database.sqlite     # usando SQLite local
+php artisan key:generate
+
+php artisan migrate --seed          # cria as tabelas e os dados ficticios
+npm run build
+php artisan serve
+```
+
+Abra http://127.0.0.1:8000. As credenciais de demonstração aparecem na tela de login.
+
+---
+
+## Deploy (Render + Neon, gratuito)
+
+Já vem pronto para publicar:
+- **Render** (Docker, plano free) roda a aplicação. Ver `Dockerfile` e `render.yaml`.
+- **Neon** (PostgreSQL free) guarda os dados, informado via `DATABASE_URL`.
+- No Render, defina no mínimo: `APP_KEY` (gere com `php artisan key:generate --show`), `DATABASE_URL` (do Neon), as variáveis de e-mail (`MAIL_*`) e, para o login com Google, `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`.
+
+---
+
+## Créditos
+
+Trabalho de Conclusão de Curso (ULBRA, 2022), modernizado em 2026 com apoio de inteligência artificial. Uso educacional.

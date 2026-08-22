@@ -14,12 +14,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::match(['get', 'post'], '/home', [UserController::class, 'home'])->name('paciente.home');
-Route::match(['get', 'post'], '/', [UserController::class, 'homeScreen'])->name('paciente.homeScreen');
-Route::match(['get', 'post'], 'paciente/store', [UserController::class, 'store'])->name('paciente.store');
+Route::match(['get', 'post'], '/form', [UserController::class, 'home'])->name('paciente.home');
+Route::match(['get', 'post'], '/home', [UserController::class, 'homeScreen'])->name('paciente.homeScreen');
+Route::post('paciente/store', [UserController::class, 'store'])->middleware('throttle:6,1')->name('paciente.store');
+
+// Login com Google (OAuth)
+Route::get('/auth/google', [UserController::class, 'redirectGoogle'])->name('google.redirect');
+Route::get('/auth/google/callback', [UserController::class, 'callbackGoogle'])->name('google.callback');
 
 Route::prefix('paciente')->middleware('can:admin')->group(function () {
     Route::match(['get', 'post'], '', [UserController::class, 'index'])->name('paciente.index');
+    Route::match(['get', 'post'], '/arquivados', [UserController::class, 'arquivados'])->name('paciente.arquivados');
+    Route::put('/restaurar/{id}', [UserController::class, 'restaurar'])->name('paciente.restaurar');
+    Route::post('/atendimento/{id}', [UserController::class, 'storeAtendimento'])->name('paciente.atendimento.store');
+    Route::match(['get', 'post'], '/historico/{id}', [UserController::class, 'historicoPdf'])->name('paciente.historico');
     Route::match(['get', 'post'], '/permission', [UserController::class, 'permission'])->name('paciente.permission');
     Route::match(['get', 'post'], '/permission/{id}', [UserController::class, 'permissionEdit'])->name('paciente.permission.edit');
     Route::put('/permission/update/{id}', [UserController::class, 'permissionUpdate'])->name('paciente.permission.update');
@@ -32,6 +40,9 @@ Route::prefix('paciente')->middleware('can:admin')->group(function () {
     Route::match(['get', 'post'], 'generatePdf/{id}', [UserController::class, 'generatePdf'])->name('paciente.generatePdf');
 });
 
+Route::match(['get', 'post'], '/', function() {
+    return redirect()->route('paciente.homeScreen');
+});
 
 Route::middleware([
     'auth:sanctum',

@@ -1,81 +1,56 @@
 @extends('layout')
-@section('title','dashboard' )
+@section('title','Painel · Pacientes')
 @section('content')
 
-<div class="nav px-5 d-flex align-items-center justify-content-between">
-  <a href="{{ route('paciente.home') }}"><img src="/img/ulbra.png" alt="" width="100" height="100"></a>
-  <form action="{{route('paciente.index')}}" class="d-flex" role="search" method="GET">
-  <input class="form-control me-2 " style="width: 500px; padding: 10px;" type="search" name="search" placeholder="Buscar" aria-label="Search">
-  <button class="btn btn-warning" type="submit">Buscar</button>
+<div class="section-head">
+  <div>
+    <h1>Pacientes cadastrados</h1>
+    <p class="muted">Painel administrativo &middot; <a class="link" href="{{ route('paciente.permission') }}">Permissões</a> &middot; <a class="link" href="{{ route('paciente.arquivados') }}">Arquivados</a></p>
+  </div>
+  <form class="search-form" action="{{ route('paciente.index') }}" method="GET" role="search">
+    <input class="input" type="search" name="search" value="{{ request('search') }}" placeholder="Buscar por nome">
+    <button class="btn btn-primary" type="submit">Buscar</button>
   </form>
-  <a href="{{ route('paciente.home') }}" class="text-white">Voltar</a>
 </div>
 
-<div class="text-center">
-  <h1 class="py-3">dashboard/<a href="/paciente/permission">Permission</a></h1>
-  <h4>Pacientes Cadastrados</h4>
-</div>
-<div class="px-5">
-  <table class="table table-dark table-striped">
-      <thead>
-        <tr>
-          <th scope="col">Nome</th>
-          <th scope="col">idade</th>
-          <th scope="col">cidade</th>
-          <th scope="col">motivo</th>
-          <th scope="col" class="text-center">ações</th>
-  
-        </tr>
-      </thead>
-      <tbody>
-  
-        @foreach($patient as $patient)
-        <tr>
-          <td>
-            <p>{{ $patient->name }}</p>
-          </td>
-          <td>
-            <?php
-              $data = $patient->birth_date;
-
-              // separando yyyy, mm, ddd
-              list($ano, $mes, $dia) = explode('-', $data);
-
-              // data atual
-              $hoje = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
-              // Descobre a unix timestamp da data de nascimento do fulano
-              $nascimento = mktime( 0, 0, 0, $mes, $dia, $ano);
-
-              // cálculo
-              $idade = floor((((($hoje - $nascimento) / 60) / 60) / 24) / 365.25);
-            ?>
-            <p>{{ $idade }}</p>
-          </td>
-          <td>
-            <p>{{ $patient->city }}</p>
-          </td>
-          <td>
-            <p>{{ $patient->consultation }}</p>
-          </td>
-          <td class="text-center">
-            <form action="{{route('paciente.destroy',$patient->id)}}" method="post">
+@if(count($patient) === 0)
+  <div class="card"><p class="muted" style="margin:0">Nenhum paciente encontrado.</p></div>
+@else
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Idade</th>
+        <th>Cidade</th>
+        <th>Motivo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach($patient as $p)
+      <tr>
+        <td>{{ $p->name }}</td>
+        <td>{{ \Carbon\Carbon::parse($p->birth_date)->age }}</td>
+        <td>{{ $p->city }}</td>
+        <td>{{ $p->consultation }}</td>
+        <td>
+          <div class="row-actions">
+            <a class="btn btn-soft btn-sm" href="{{ route('paciente.view',$p->id) }}">Ver</a>
+            <a class="btn btn-soft btn-sm" href="{{ route('paciente.edit',$p->id) }}">Editar</a>
+            <a class="btn btn-soft btn-sm" href="{{ route('paciente.generatePdf',$p->id) }}" target="_blank">Imprimir</a>
+            <form action="{{ route('paciente.destroy',$p->id) }}" method="post" onsubmit="return confirm('Arquivar este paciente? O histórico continua guardado e pode ser restaurado.')" style="display:inline">
               @csrf
               @method('delete')
-              <button type="submit" class="btn btn-danger">deletar</button>
-              <a href="{{route('paciente.edit',$patient->id)}}" class="btn btn-primary">editar</a>
-              <a href="{{route('paciente.view',$patient->id)}}" class="btn btn-info">Visualizar</a>
-              <a href="{{route('paciente.generatePdf',$patient->id)}}" target="_blank" class="btn btn-warning">imprimir</a>
-          </td>
-        </tr>
-        @endforeach
-  
-      </tbody>
-    </table>
+              <button type="submit" class="btn btn-soft btn-sm">Arquivar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      @endforeach
+    </tbody>
+  </table>
 </div>
+@endif
 
-<style>
-  .nav {
-    background-color: #585dd6;
-  }
-</style>
 @endsection
