@@ -6,6 +6,8 @@ Sistema web para cadastro e acompanhamento de pacientes de uma clínica escola d
 
 > **Aplicação no ar:** https://clinica-ulbra.onrender.com
 >
+> ⏳ **Primeiro acesso pode demorar.** A hospedagem é gratuita e "hiberna" após um tempo sem uso. No primeiro acesso, o servidor precisa acordar, então a página pode levar de **30 a 60 segundos** para abrir. Se aparecer lenta ou em branco, aguarde um pouco e atualize. A partir daí o acesso é normal.
+>
 > Projeto acadêmico. Todos os dados de demonstração são **fictícios** e as credenciais de acesso de teste aparecem na própria tela de login.
 
 ---
