@@ -17,15 +17,16 @@ class UpdatePasswordTest extends TestCase
     {
         $this->actingAs($user = User::factory()->create());
 
+        // senha forte (a politica exige maiuscula, minuscula, numero e simbolo, min 10)
         Livewire::test(UpdatePasswordForm::class)
                 ->set('state', [
                     'current_password' => 'password',
-                    'password' => 'new-password',
-                    'password_confirmation' => 'new-password',
+                    'password' => 'Cl1nica#Ulbra!2026',
+                    'password_confirmation' => 'Cl1nica#Ulbra!2026',
                 ])
                 ->call('updatePassword');
 
-        $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
+        $this->assertTrue(Hash::check('Cl1nica#Ulbra!2026', $user->fresh()->password));
     }
 
     public function test_current_password_must_be_correct()

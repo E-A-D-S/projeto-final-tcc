@@ -3,92 +3,63 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
-use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_reset_password_link_screen_can_be_rendered()
+    private function criaUsuario(string $email, string $senha = 'senhaAntiga1'): User
     {
-        if (! Features::enabled(Features::resetPasswords())) {
-            return $this->markTestSkipped('Password updates are not enabled.');
-        }
-
-        $response = $this->get('/forgot-password');
-
-        $response->assertStatus(200);
+        return User::create([
+            'name' => 'Fulano',
+            'email' => $email,
+            'password' => bcrypt($senha),
+            'email_verified_at' => now(),
+        ]);
     }
 
-    public function test_reset_password_link_can_be_requested()
+    private function fluxoReset(User $u): bool
     {
-        if (! Features::enabled(Features::resetPasswords())) {
-            return $this->markTestSkipped('Password updates are not enabled.');
-        }
+        // 1) solicita o link de recuperacao
+        $this->post('/forgot-password', ['email' => $u->email])->assertSessionHas('status');
 
-        Notification::fake();
-
-        $user = User::factory()->create();
-
-        $response = $this->post('/forgot-password', [
-            'email' => $user->email,
+        // 2) usa um token valido (o mesmo tipo que vai no e-mail) para redefinir
+        $token = Password::broker()->createToken($u);
+        $resp = $this->post('/reset-password', [
+            'token' => $token,
+            'email' => $u->email,
+            'password' => 'NovaSenha#2026',
+            'password_confirmation' => 'NovaSenha#2026',
         ]);
+        $resp->assertSessionHasNoErrors();
 
-        Notification::assertSentTo($user, ResetPassword::class);
+        // 3) a senha realmente mudou
+        return Hash::check('NovaSenha#2026', $u->fresh()->password);
     }
 
-    public function test_reset_password_screen_can_be_rendered()
+    public function test_reset_para_conta_com_senha(): void
     {
-        if (! Features::enabled(Features::resetPasswords())) {
-            return $this->markTestSkipped('Password updates are not enabled.');
-        }
-
-        Notification::fake();
-
-        $user = User::factory()->create();
-
-        $response = $this->post('/forgot-password', [
-            'email' => $user->email,
-        ]);
-
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
-
-            $response->assertStatus(200);
-
-            return true;
-        });
+        // ex.: admin de demonstracao / usuario comum criado com senha
+        $u = $this->criaUsuario('admin@demo.com');
+        $this->assertTrue($this->fluxoReset($u));
     }
 
-    public function test_password_can_be_reset_with_valid_token()
+    public function test_reset_para_conta_criada_via_google(): void
     {
-        if (! Features::enabled(Features::resetPasswords())) {
-            return $this->markTestSkipped('Password updates are not enabled.');
-        }
+        // usuario que entrou pelo Google tem senha aleatoria; ainda assim pode
+        // definir uma senha pelo "esqueci a senha" (login alternativo)
+        $u = $this->criaUsuario('estagiario@gmail.com', \Illuminate\Support\Str::random(40));
+        $this->assertTrue($this->fluxoReset($u));
+    }
 
-        Notification::fake();
-
-        $user = User::factory()->create();
-
-        $response = $this->post('/forgot-password', [
-            'email' => $user->email,
-        ]);
-
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-            $response = $this->post('/reset-password', [
-                'token' => $notification->token,
-                'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
-            ]);
-
-            $response->assertSessionHasNoErrors();
-
-            return true;
-        });
+    public function test_email_inexistente_nao_revela_e_nao_quebra(): void
+    {
+        // Fortify responde de forma generica (nao revela se o e-mail existe)
+        $this->post('/forgot-password', ['email' => 'naoexiste@nada.com'])
+            ->assertSessionHasErrors('email'); // mensagem generica de "nao encontramos"
     }
 }

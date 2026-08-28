@@ -2,65 +2,90 @@
 
 Sistema web para cadastro e acompanhamento de pacientes de uma clínica escola de Psicologia. O projeto nasceu como Trabalho de Conclusão de Curso na ULBRA em 2022 e, em 2026, passou por uma modernização completa.
 
-> **Sobre esta branch.** O `main` continua com o trabalho original de 2022, preservado exatamente como foi entregue. Esta branch (`modernizacao-ia-2026`) é um novo ponto de ramificação com o projeto totalmente revisado, seguro e, agora, com hospedagem permanente online.
+> **Sobre esta branch.** O `main` continua com o trabalho original de 2022, preservado exatamente como foi entregue. Esta branch (`modernizacao-ia-2026`) é um novo ponto de ramificação com o projeto totalmente revisado, seguro, acessível e com hospedagem permanente.
 
 > **Aplicação no ar:** https://clinica-ulbra.onrender.com
-
-> Projeto acadêmico. Todos os dados da demonstração são **fictícios**.
+>
+> Projeto acadêmico. Todos os dados de demonstração são **fictícios** e as credenciais de acesso de teste aparecem na própria tela de login.
 
 ---
 
 ## Como esta versão foi construída
 
-Toda a modernização foi feita **sem escrita manual de código**, usando inteligência artificial como par de programação. Não reescrevi o sistema do zero: parti do meu próprio TCC de 2022 e fui melhorando cada parte com apoio de IA, revisando e validando cada mudança.
+Toda a modernização foi feita **sem escrita manual de código**, usando inteligência artificial como par de programação. Não reescrevi o sistema do zero: parti do meu próprio TCC de 2022 e fui melhorando cada parte com apoio de IA, revisando, testando e validando cada mudança.
 
-O foco foi transformar um trabalho acadêmico, que rodava localmente, em um sistema real, seguro, acessível e com hospedagem permanente, aplicando as boas práticas atuais de segurança do Brasil e do mundo.
+O objetivo foi transformar um trabalho acadêmico, que rodava localmente, em um sistema real, seguro, acessível e publicado, aplicando as boas práticas atuais de segurança do Brasil e do mundo.
 
 ---
 
-## O que mudou em relação ao projeto de 2022
+## Antes (2022) x Agora (2026)
 
-### Hospedagem (agora permanente e gratuita)
-Na época do TCC, o sistema rodava localmente. Para a apresentação, eu o deixava acessível de forma temporária por um túnel (ngrok), compartilhado por QR code, o que permitia à banca testar em tempo real e simular um ambiente hospedado online. Era uma solução de demonstração: funcionava apenas enquanto a minha máquina estava ligada e o túnel aberto.
+| Tema | Antes | Agora |
+|---|---|---|
+| Hospedagem | Local; na apresentação, um túnel temporário (ngrok + QR code) | Permanente e gratuita (Render + Neon), 24h no ar |
+| Acesso | Um único nível de admin | Papéis Dono / Tutor / Estagiário (menor privilégio) |
+| Senhas | Hash padrão | **Argon2id** + política forte + checagem de vazamento |
+| Duas etapas (2FA) | Não tinha | Ativação por QR (Google/Microsoft Authenticator) |
+| Exclusão de dados | Apagava de fato | Arquiva (nunca apaga) por guarda legal de prontuário |
+| LGPD | Não tratava | Consentimento + Política de Privacidade + direitos |
+| E-mail | Não enviava | Confirmação ao paciente + aviso à clínica |
+| Histórico clínico | Não tinha | Registro de sessões + impressão em PDF |
+| Acessibilidade | Não tinha | VLibras (Libras), teclado, apoio a daltônicos |
+| Idioma | Partes em inglês (Jetstream) | 100% em português |
+| Aparência | Padrão | Design próprio, claro/escuro, responsivo |
+| Segurança web | Básica | Cabeçalhos de segurança + CSP + auditoria |
+| Testes | Não tinha | Testes automatizados de acesso, 2FA e senha |
 
-Agora o sistema tem hospedagem de verdade, no ar 24 horas por dia e com custo zero, pronta inclusive para uso real da clínica caso haja interesse:
-- **Render** (Docker, plano gratuito) executa a aplicação. Ver `Dockerfile`, `docker-entrypoint.sh` e `render.yaml`.
-- **Neon** (PostgreSQL gratuito) guarda os dados, com conexão via TLS.
-- Ajustes feitos para o ambiente de produção: proxy reverso confiável (`TrustProxies`), forçar HTTPS, e sessões guardadas no banco (para o usuário não cair a cada reinício do servidor no plano gratuito).
+---
 
-### Segurança (auditoria OWASP Top 10 + NIST)
-Fiz uma auditoria de segurança do projeto, do banco e da hospedagem seguindo OWASP Top 10 e as referências do NIST. Correções e proteções aplicadas:
-- Validação server-side em todos os cadastros e edições.
-- Proteção contra mass assignment (lista branca de campos em cada model).
-- Limite de requisições (rate limit) e honeypot anti-spam no formulário público.
-- Cadastro self-service desativado (`/register` fora do ar), evitando criação de contas indevidas.
-- Controle de acesso por permissão nas rotas administrativas (visitante recebe 403 no painel e nos PDFs).
-- Credenciais fora do código: tudo por variáveis de ambiente. O `.env` real com segredos foi removido do histórico exposto e trocado por exemplo.
-- HTTPS forçado e sessões persistidas em banco.
+## O que foi feito e por quê
 
-### Proteção de dados e conformidade legal
-- **LGPD:** aviso de consentimento no cadastro, explicando o uso dos dados e o direito de solicitar remoção. O envio só é aceito com o aceite marcado.
-- **Retenção de prontuário (Resolução CFP 001/2009):** dados de paciente **nunca são apagados de verdade**. A ação de excluir virou **Arquivar** (soft delete): o registro sai da lista ativa, mas o histórico fica guardado e pode ser restaurado. Existe uma tela dedicada de arquivados.
+### Hospedagem permanente (antes não existia)
+Na época do TCC, o sistema rodava localmente e, para a apresentação, eu o expunha por um túnel temporário (ngrok) via QR code, o que só funcionava com a minha máquina ligada. **Por quê mudar:** um sistema precisa estar sempre disponível. Agora roda 24h com custo zero em **Render** (Docker) + **Neon** (PostgreSQL com TLS), com HTTPS forçado e sessões guardadas no banco para não cair a cada reinício.
 
-### Novas funcionalidades
-- **E-mail real funcionando:** ao cadastrar, o paciente recebe uma confirmação por e-mail e a clínica recebe um aviso do novo cadastro (SMTP da própria conta da clínica).
-- **Histórico de atendimentos:** registro de cada sessão (data, hora, profissional e anotações), com impressão do histórico completo em PDF.
-- **Login com Google** (OAuth), além do login por e-mail e senha, para acesso mais fácil da equipe.
+### Controle de acesso por papéis (RBAC, menor privilégio)
+Antes existia só "admin". **Por quê mudar:** numa clínica escola, cada pessoa deve enxergar apenas o necessário. Agora há três papéis:
+
+| Ação | Dono | Tutor | Estagiário |
+|---|:---:|:---:|:---:|
+| Cadastrar, ver, imprimir | Sim | Sim | Sim |
+| Registrar atendimento | Sim | Sim | Sim (auditado) |
+| Editar paciente | Sim | Sim | Não |
+| Arquivar / Restaurar | Sim | Não | Não |
+| Gerenciar equipe | Sim (todos) | Sim (só estagiários) | Não |
+| Ver auditoria | Sim | Sim (seus estagiários) | Não |
+
+O acesso é liberado por e-mail: o dono cria tutores e o tutor cria estagiários; a pessoa entra com o Google e já recebe o papel certo.
+
+### Senhas e autenticação
+- **Argon2id** (recomendação nº 1 da OWASP) para o hash das senhas, com política forte (mínimo 10 caracteres, maiúsculas, minúsculas, números e símbolos) e verificação de vazamento (HaveIBeenPwned). **Por quê:** proteger a credencial mesmo em caso de incidente.
+- **Login com Google** (OAuth) além do e-mail e senha, para acesso mais simples da equipe.
+- **Recuperação de senha** funcional e segura (não revela se um e-mail existe).
+- **Verificação em duas etapas (2FA)** por aplicativo autenticador, com convite para ativar após o login.
+
+### Proteção de dados e conformidade legal (LGPD)
+- **Consentimento** no cadastro e uma **Política de Privacidade** dedicada.
+- **Retenção de prontuário (Resolução CFP 001/2009):** dados de paciente **nunca são apagados**. A exclusão virou **Arquivar** (o registro sai da lista ativa, mas o histórico fica guardado e pode ser restaurado).
+- **Modo demonstração em sandbox:** a conta pública de demo mostra o painel completo, mas **só enxerga dados fictícios**, nunca clientes, equipe ou atividade reais.
+
+### Funcionalidades novas
+- **E-mail real:** confirmação ao paciente e aviso à clínica a cada novo cadastro.
+- **Histórico de atendimentos:** registro de cada sessão (data, hora, profissional e anotações) com impressão em PDF.
 - **Ficha e contrato do paciente em PDF**, reescritos para sair limpos e com a identidade visual correta.
 
 ### Experiência e acessibilidade
-- **Interface redesenhada** do zero com um design system próprio (cores harmônicas, componentes consistentes).
-- **Modo claro e modo escuro**, com a preferência salva.
-- **Totalmente responsivo** (celular, tablet e computador).
-- **Tudo em português**, com textos revisados (UX writing).
-- **Acessibilidade:** navegação por teclado com foco visível, informação que não depende só de cor (apoio a daltônicos) e **VLibras** (tradução em Libras, ferramenta gratuita do governo) em todas as telas.
-- CSS e JS servidos localmente, sem depender de CDNs externas.
+- **Interface redesenhada** com design próprio, **modo claro e escuro** e **totalmente responsiva**.
+- **100% em português** (inclusive telas que vinham em inglês do Jetstream).
+- **Acessibilidade:** VLibras (tradução em Libras, ferramenta gratuita do governo), navegação por teclado com foco visível, "pular para o conteúdo", e informação que não depende só de cor (apoio a daltônicos).
 
----
+### Segurança web
+- **Cabeçalhos de segurança** (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, HSTS) e **Content-Security-Policy** compatível com o VLibras.
+- Validação no servidor, proteção contra mass assignment, rate limit e honeypot anti-spam, CSRF, saída escapada (sem XSS) e Eloquent (sem SQL injection).
+- **Trilha de auditoria:** quem fez o quê, em qual paciente, quando e de qual IP.
+- Cadastro self-service desativado e **conteúdo não indexável** por buscadores (o projeto ainda não está em uso real).
 
-## Acesso de demonstração
-
-As credenciais aparecem na própria tela de login. O ambiente publicado roda em **modo demonstração**: o cadastro público de paciente funciona de verdade (inclusive o disparo de e-mail), mas as ações de escrita do admin ficam bloqueadas para preservar os dados de exemplo.
+### Testes automatizados
+Cobrem o controle de acesso por papel, o isolamento do sandbox de demonstração, a recuperação de senha e o fluxo de 2FA.
 
 ---
 
@@ -69,10 +94,9 @@ As credenciais aparecem na própria tela de login. O ambiente publicado roda em 
 - PHP 8 e **Laravel 9**
 - Jetstream, Fortify e Sanctum (autenticação)
 - Laravel Socialite (login com Google)
-- Livewire (componentes)
-- spatie/laravel-permission (permissões)
+- Livewire, spatie/laravel-permission (papéis e permissões)
 - barryvdh/laravel-dompdf (PDF)
-- Blade e design system próprio em CSS (com Tailwind e Vite disponíveis)
+- Blade e design system próprio em CSS
 - Banco: SQLite (local) ou PostgreSQL (produção, no Neon)
 - Deploy: Docker no Render
 
@@ -103,8 +127,8 @@ Abra http://127.0.0.1:8000. As credenciais de demonstração aparecem na tela de
 
 Já vem pronto para publicar:
 - **Render** (Docker, plano free) roda a aplicação. Ver `Dockerfile` e `render.yaml`.
-- **Neon** (PostgreSQL free) guarda os dados, informado via `DATABASE_URL`.
-- No Render, defina no mínimo: `APP_KEY` (gere com `php artisan key:generate --show`), `DATABASE_URL` (do Neon), as variáveis de e-mail (`MAIL_*`) e, para o login com Google, `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`.
+- **Neon** (PostgreSQL free) guarda os dados, via `DATABASE_URL`.
+- No Render, defina no mínimo: `APP_KEY`, `DATABASE_URL`, as variáveis de e-mail (`MAIL_*`) e, para o login com Google, `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`.
 
 ---
 

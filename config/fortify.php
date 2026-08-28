@@ -139,7 +139,9 @@ return [
         Features::updatePasswords(),
         Features::twoFactorAuthentication([
             'confirm' => true,
-            'confirmPassword' => true,
+            // sem exigir confirmacao de senha: assim quem entra via Google
+            // (sem senha conhecida) tambem consegue ativar o 2FA
+            'confirmPassword' => false,
             // 'window' => 0,
         ]),
     ],

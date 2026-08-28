@@ -62,7 +62,7 @@ return [
         // Features::profilePhotos(),
         // Features::api(),
         // Features::teams(['invitations' => true]),
-        Features::accountDeletion(),
+        // Features::accountDeletion(), // desativado: contas sao geridas pelo dono/tutor (Equipe), nao por auto-exclusao
     ],
 
     /*

@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta http-equiv="Cache-Control" content="no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
+  {{-- nao indexar em nenhum buscador enquanto o projeto nao estiver em uso real --}}
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow">
   <title>@yield('title', 'Clínica ULBRA')</title>
   <script>try{var t=localStorage.getItem('tema');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
   <link rel="stylesheet" href="/css/app.css">
   @yield('scriptsjs')
 </head>
 <body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
   <header class="topbar">
     <div class="container topbar-inner">
       <a class="brand" href="{{ route('paciente.homeScreen') }}">
@@ -19,9 +24,10 @@
       </a>
       <nav class="topbar-actions">
         @auth
-          @can('admin')
+          @can('pacientes.ver')
             <a class="btn btn-ghost btn-sm" href="{{ route('paciente.index') }}">Painel</a>
           @endcan
+          <a class="btn btn-ghost btn-sm" href="{{ route('seguranca') }}">Segurança</a>
           <form action="/logout" method="post" style="display:inline">
             @csrf
             <button class="btn btn-ghost btn-sm" type="submit">Sair</button>
@@ -36,15 +42,15 @@
     </div>
   </header>
 
-  <main class="container main">
+  <main class="container main" id="conteudo">
     @if(session()->has('paciente'))
-      <div class="alert alert-success">{{ session()->get('paciente') }}</div>
+      <div class="alert alert-success" role="status" aria-live="polite">{{ session()->get('paciente') }}</div>
     @endif
     @yield('content')
   </main>
 
   <footer class="footer">
-    <div class="container">Clínica Escola ULBRA &middot; Sistema de gestão de pacientes</div>
+    <div class="container">Clínica Escola ULBRA &middot; Sistema de gestão de pacientes &middot; <a class="link" href="{{ route('privacidade') }}">Política de Privacidade</a></div>
   </footer>
 
   <!-- VLibras: tradutor de Libras (acessibilidade, widget oficial do governo) -->

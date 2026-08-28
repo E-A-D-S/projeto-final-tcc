@@ -13,9 +13,13 @@ return [
     |
     | Supported: "bcrypt", "argon", "argon2id"
     |
+    | Padrao: Argon2id (recomendacao nº 1 da OWASP para hash de senha).
+    | Da pra voltar pra bcrypt via env HASH_DRIVER=bcrypt sem mexer no codigo,
+    | caso o ambiente nao suporte Argon2id.
+    |
     */
 
-    'driver' => 'bcrypt',
+    'driver' => env('HASH_DRIVER', 'argon2id'),
 
     /*
     |--------------------------------------------------------------------------
@@ -29,7 +33,7 @@ return [
     */
 
     'bcrypt' => [
-        'rounds' => env('BCRYPT_ROUNDS', 10),
+        'rounds' => env('BCRYPT_ROUNDS', 12),
     ],
 
     /*
@@ -44,7 +48,13 @@ return [
     */
 
     'argon' => [
-        'memory' => 65536,
+        'memory' => 65536, // 64 MB
+        'threads' => 1,
+        'time' => 4,
+    ],
+
+    'argon2id' => [
+        'memory' => 65536, // 64 MB (acima do baseline OWASP de 19 MB)
         'threads' => 1,
         'time' => 4,
     ],
